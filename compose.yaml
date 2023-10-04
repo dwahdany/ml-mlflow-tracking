@@ -1,0 +1,7 @@
+services:
+    mlflow:
+        image: "registry.gitlab.cc-asp.fraunhofer.de/ml/docker/mlflow-tracking"
+        ports:
+            - "6969:5000"
+        volumes:
+            - /raid/${USER}/mlruns:/mlruns
