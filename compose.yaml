@@ -5,3 +5,4 @@ services:
             - "6969:5000"
         volumes:
             - /raid/${USER}/mlruns:/mlruns
+            - /raid/${USER}/mlartifacts:/mlartifacts
