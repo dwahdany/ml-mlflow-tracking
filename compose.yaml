@@ -1,8 +1,78 @@
+version: '3.7'
+networks:
+    backend:
+    frontend:
 services:
+    # PostgreSQL database
+    postgres:
+        image: postgres:latest
+        environment:
+            POSTGRES_USER: user
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: mlflowdb
+        # ports:
+        #     - 5432:5432
+        networks:
+            - backend
+        volumes:
+            - /raid/${USER}/mlflow/db:/var/lib/postgresql/data
+    # MinIO server
+    minio:
+        image: minio/minio
+        # expose:
+        #     - "9000"
+        ports:
+        #     - "9000:9000"
+            # MinIO Console is available at http://localhost:9001
+            - "9001:9001"
+        networks:
+            - backend
+        volumes:
+            - /raid/${USER}/mlflow/minio:/data
+        environment:
+            MINIO_ROOT_USER: "minio_user"
+            MINIO_ROOT_PASSWORD: "minio_password"
+        healthcheck:
+            test: timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1
+            interval: 1s
+            timeout: 10s
+            retries: 5
+        command: server /data --console-address ":9001"
+        # Create a bucket named "bucket" if it doesn't exist
+    minio-create-bucket:
+        image: minio/mc
+        networks:
+            - backend
+        depends_on:
+            minio:
+                condition: service_healthy
+        entrypoint: >
+            bash -c "
+            mc alias set minio http://minio:9000 minio_user minio_password &&
+            if ! mc ls minio | grep --quiet bucket; then
+                mc mb minio/bucket
+            else
+                echo 'bucket already exists'
+            fi
+            "
     mlflow:
         image: "registry.gitlab.cc-asp.fraunhofer.de/ml/docker/mlflow-tracking"
         ports:
             - "6969:5000"
-        volumes:
-            - /raid/${USER}/mlruns:/mlruns
-            - /raid/${USER}/mlartifacts:/mlartifacts
+        networks:
+            - backend
+            - frontend
+        # volumes:
+        #     - /raid/${USER}/mlruns:/mlruns
+        #     - /raid/${USER}/mlartifacts:/mlartifacts
+        environment:
+            - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+            - AWS_ACCESS_KEY_ID=minio_user
+            - AWS_SECRET_ACCESS_KEY=minio_password
+        command:
+            [
+                "--backend-store-uri",
+                "postgresql://user:password@postgres:5432/mlflowdb",
+                "--artifacts-destination",
+                "s3://bucket"
+            ]
