@@ -9,6 +9,7 @@ Should you never have used the registry, login first:
 ```bash
 docker login registry.gitlab.cc-asp.fraunhofer.de
 ```
+If you can't access the registry, you must build the image yourself (see below).
 
 ### Run
 ```bash
