@@ -3,7 +3,7 @@ python_version=3.10
 special_tag='latest'
 tag=py-$python_version
 image=registry.gitlab.cc-asp.fraunhofer.de/ml/docker/mlflow-tracking
-docker build -t $image:$tag .
+docker buildx build -t $image:$tag .
 docker push $image:$tag
 # check if special_tag is not none
 if [[ "$special_tag" != "" ]]; then
