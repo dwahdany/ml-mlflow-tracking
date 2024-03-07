@@ -2,6 +2,8 @@ version: '3.7'
 networks:
     backend:
     frontend:
+        external: true
+        name: mlflow
 services:
     # PostgreSQL database
     postgres:
