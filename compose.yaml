@@ -23,10 +23,10 @@ services:
         image: minio/minio
         # expose:
         #     - "9000"
-        ports:
+        # ports:
         #     - "9000:9000"
             # MinIO Console is available at http://localhost:9001
-            - "9001:9001"
+            # - "9001:9001"
         networks:
             - backend
         volumes:
