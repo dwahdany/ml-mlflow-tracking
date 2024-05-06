@@ -18,6 +18,7 @@ services:
             - backend
         volumes:
             - /raid/${USER}/mlflow/db:/var/lib/postgresql/data
+        restart: unless-stopped
     # MinIO server
     minio:
         image: minio/minio
@@ -40,6 +41,7 @@ services:
             timeout: 10s
             retries: 5
         command: server /data --console-address ":9001"
+        restart: unless-stopped
         # Create a bucket named "bucket" if it doesn't exist
     minio-create-bucket:
         image: minio/mc
@@ -71,6 +73,7 @@ services:
             - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
             - AWS_ACCESS_KEY_ID=minio_user
             - AWS_SECRET_ACCESS_KEY=minio_password
+        restart: unless-stopped
         command:
             [
                 "--backend-store-uri",
