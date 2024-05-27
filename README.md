@@ -7,7 +7,7 @@ Make sure to mount /mlruns and /mlartifacts to persistent storage if desired.
 ### (Login to registry)
 Should you never have used the registry, login first:
 ```bash
-docker login registry.gitlab.cc-asp.fraunhofer.de
+docker login container-registry.gitlab.cc-asp.fraunhofer.de
 ```
 If you can't access the registry, you must build the image yourself (see below).
 
