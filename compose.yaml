@@ -3,7 +3,7 @@ networks:
     backend:
     frontend:
         external: true
-        name: mlflow
+        name: development
 services:
     # PostgreSQL database
     postgres:
