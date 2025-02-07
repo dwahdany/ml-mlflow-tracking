@@ -95,3 +95,15 @@ services:
     #     volumes:
     #         - ./nginx.conf:/etc/nginx/nginx.conf:ro
     #     restart: unless-stopped
+
+    # Database upgrade service (only runs when explicitly called with --profile db-upgrade)
+    mlflow-upgrade:
+        profiles:
+            - db-upgrade
+        image: "container-registry.gitlab.cc-asp.fraunhofer.de/ml/docker/mlflow-tracking"
+        networks:
+            - backend
+        depends_on:
+            - postgres
+        entrypoint: ["mlflow"]
+        command: db upgrade postgresql://user:password@postgres:5432/mlflowdb
