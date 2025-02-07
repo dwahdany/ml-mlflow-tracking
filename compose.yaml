@@ -7,7 +7,7 @@ networks:
 services:
     # PostgreSQL database
     postgres:
-        image: postgres:latest
+        image: postgres:16.6
         environment:
             POSTGRES_USER: user
             POSTGRES_PASSWORD: password
@@ -24,12 +24,13 @@ services:
         image: minio/minio
         # expose:
         #     - "9000"
-        # ports:
+        ports:
         #     - "9000:9000"
             # MinIO Console is available at http://localhost:9001
-            # - "9001:9001"
+            - "9001:9001"
         networks:
             - backend
+            # - frontend
         volumes:
             - /raid/${USER}/mlflow/minio:/data
         environment:
@@ -81,3 +82,16 @@ services:
                 "--artifacts-destination",
                 "s3://bucket"
             ]
+    # Nginx reverse proxy for MinIO Console
+    # minio-proxy:
+    #     image: nginx:latest
+    #     ports:
+    #         - "9001:80"
+    #     networks:
+    #         - backend
+    #         - frontend
+    #     depends_on:
+    #         - minio
+    #     volumes:
+    #         - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    #     restart: unless-stopped
