@@ -10,6 +10,7 @@ jobs:
   build-mlflow:
     runs-on: ubuntu-latest
     env:
+      REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
       MLFLOW_VERSION: 2.22.0
       CACHE_PATH: /tmp/.buildx-cache-mlflow
