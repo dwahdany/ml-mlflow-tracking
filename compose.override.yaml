@@ -1,0 +1,19 @@
+networks:
+    backend:
+    frontend:
+        # if you want to use existing networks, change like so
+        # external: true
+        # name: development
+services:
+  postgres:
+    volumes:
+      - /raid/${USER}/mlflow/db:/var/lib/postgresql/data
+  minio:
+    volumes:
+      - /raid/${USER}/mlflow/minio:/data
+  mlflow:
+    ports:
+      - "6969:5000" # change 6969 to the port you want to use
+    volumes:
+      - /raid/${USER}/mlruns:/mlruns
+      - /raid/${USER}/mlartifacts:/mlartifacts 

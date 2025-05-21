@@ -1,9 +1,3 @@
-version: '3.7'
-networks:
-    backend:
-    frontend:
-        external: true
-        name: development
 services:
     # PostgreSQL database
     postgres:
@@ -16,8 +10,8 @@ services:
         #     - 5432:5432
         networks:
             - backend
-        volumes:
-            - /raid/${USER}/mlflow/db:/var/lib/postgresql/data
+        # volumes:
+        #     - /raid/${USER}/mlflow/db:/var/lib/postgresql/data
         restart: unless-stopped
     # MinIO server
     minio:
@@ -31,8 +25,8 @@ services:
         networks:
             - backend
             # - frontend
-        volumes:
-            - /raid/${USER}/mlflow/minio:/data
+        # volumes:
+        #     - /raid/${USER}/mlflow/minio:/data
         environment:
             MINIO_ROOT_USER: "minio_user"
             MINIO_ROOT_PASSWORD: "minio_password"
@@ -62,14 +56,9 @@ services:
             "
     mlflow:
         image: "ghcr.io/dwahdany/ml-mlflow-tracking:go-latest"
-        ports:
-            - "6969:5000"
         networks:
             - backend
             - frontend
-        # volumes:
-        #     - /raid/${USER}/mlruns:/mlruns
-        #     - /raid/${USER}/mlartifacts:/mlartifacts
         environment:
             - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
             - AWS_ACCESS_KEY_ID=minio_user

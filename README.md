@@ -9,6 +9,8 @@ Make sure to mount /mlruns and /mlartifacts to persistent storage if desired.
 All data will be lost if the container is removed, otherwise.
 
 ## Usage
+**Note:** Persistent storage volume binds are in `compose.override.yaml`. Edit that file to customize storage for your environment.
+
 ### Run
 ```bash
 docker compose up -d
