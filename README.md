@@ -1,4 +1,8 @@
 # Mlflow Tracking
+
+[![Build MLflow (Python)](https://github.com/dwahdany/ml-mlflow-tracking/actions/workflows/docker-build.yml/badge.svg?branch=main&label=mlflow-python)](https://github.com/dwahdany/ml-mlflow-tracking/actions/workflows/docker-build.yml)
+[![Build MLflow-Go](https://github.com/dwahdany/ml-mlflow-tracking/actions/workflows/docker-build.yml/badge.svg?branch=main&label=mlflow-go)](https://github.com/dwahdany/ml-mlflow-tracking/actions/workflows/docker-build.yml)
+
 Mlflow Tracking Server
 
 Make sure to mount /mlruns and /mlartifacts to persistent storage if desired. 
