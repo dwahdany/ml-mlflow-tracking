@@ -27,33 +27,6 @@ jobs:
         with:
           driver: docker-container
 
-      - name: Cache Docker layers (MLflow)
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CACHE_PATH }}
-          key: ${{ runner.os }}-buildx-mlflow-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-mlflow-
-
-      - name: Build and tag MLflow (Python) image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          build-args: |
-            MLFLOW_BACKEND=python
-            MLFLOW_VERSION=${{ env.MLFLOW_VERSION }}
-          push: ${{ env.DOCKER_PUSH == 'true' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mlflow-${{ env.MLFLOW_VERSION }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          cache-from: type=local,src=${{ env.CACHE_PATH }}
-          cache-to: type=local,dest=${{ env.CACHE_PATH }}-new
-
-      - name: Move cache (MLflow)
-        run: |
-          rm -rf ${{ env.CACHE_PATH }}
-          mv ${{ env.CACHE_PATH }}-new ${{ env.CACHE_PATH }}
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -68,6 +41,9 @@ jobs:
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=mlflow-${{ env.MLFLOW_VERSION }}
+            type=raw,value=latest
 
       - name: Build and push Docker image
         id: build-and-push
@@ -114,32 +90,6 @@ jobs:
         with:
           driver: docker-container
 
-      - name: Cache Docker layers (MLflow-Go)
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CACHE_PATH }}
-          key: ${{ runner.os }}-buildx-mlflow-go-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-mlflow-go-
-
-      - name: Build and tag MLflow-Go image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          build-args: |
-            MLFLOW_BACKEND=go
-            MLFLOW_GO_VERSION=${{ env.MLFLOW_GO_VERSION }}
-          push: ${{ env.DOCKER_PUSH == 'true' }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mlflow-go-${{ env.MLFLOW_GO_VERSION }}
-          cache-from: type=local,src=${{ env.CACHE_PATH }}
-          cache-to: type=local,dest=${{ env.CACHE_PATH }}-new
-
-      - name: Move cache (MLflow-Go)
-        run: |
-          rm -rf ${{ env.CACHE_PATH }}
-          mv ${{ env.CACHE_PATH }}-new ${{ env.CACHE_PATH }}
-
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
@@ -153,6 +103,8 @@ jobs:
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=mlflow-${{ env.MLFLOW_GO_VERSION }}
 
       - name: Build and push Docker image
         id: build-and-push
