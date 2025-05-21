@@ -57,8 +57,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=mlflow-python
+          cache-to: type=gha,mode=max,scope=mlflow-python
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.4.0
@@ -118,8 +118,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=mlflow-go
+          cache-to: type=gha,mode=max,scope=mlflow-go
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.4.0
