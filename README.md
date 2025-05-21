@@ -13,6 +13,7 @@ All data will be lost if the container is removed, otherwise.
 ```bash
 docker compose up -d
 ```
+Note that the go-backend does not support file-based databases.
 
 ### Build
 When changing the Dockerfile, run the build process again
