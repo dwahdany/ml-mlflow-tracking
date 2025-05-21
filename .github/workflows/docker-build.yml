@@ -9,6 +9,10 @@ on:
 jobs:
   build-mlflow:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
@@ -89,6 +93,10 @@ jobs:
 
   build-mlflow-go:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     env:
       IMAGE_NAME: ${{ github.repository }}
       MLFLOW_GO_VERSION: 0.2.0
