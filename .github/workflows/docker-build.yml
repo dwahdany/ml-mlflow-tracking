@@ -104,7 +104,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=mlflow-${{ env.MLFLOW_GO_VERSION }}
+            type=raw,value=mlflow-go-${{ env.MLFLOW_GO_VERSION }}
 
       - name: Build and push Docker image
         id: build-and-push
