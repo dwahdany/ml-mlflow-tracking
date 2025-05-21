@@ -98,6 +98,7 @@ jobs:
       packages: write
       id-token: write
     env:
+      REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
       MLFLOW_GO_VERSION: 0.2.0
       CACHE_PATH: /tmp/.buildx-cache-mlflow-go
