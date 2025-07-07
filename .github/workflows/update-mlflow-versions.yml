@@ -71,20 +71,29 @@ jobs:
             - name: Update MLflow versions
               if: steps.check-python.outputs.needs-update == 'true' || steps.check-go.outputs.needs-update == 'true'
               run: |
+                  # Create a temporary file with updates
+                  cp .mlflow-versions.json temp_versions.json
+
                   # Update Python version if needed
                   if [ "${{ steps.check-python.outputs.needs-update }}" = "true" ]; then
-                    jq '.mlflow.python = "${{ steps.check-python.outputs.latest-version }}"' .mlflow-versions.json > tmp.json && mv tmp.json .mlflow-versions.json
+                    jq '.mlflow.python = "${{ steps.check-python.outputs.latest-version }}"' temp_versions.json > tmp.json && mv tmp.json temp_versions.json
                     echo "Updated MLflow Python version to ${{ steps.check-python.outputs.latest-version }}"
                   fi
 
                   # Update Go version if needed
                   if [ "${{ steps.check-go.outputs.needs-update }}" = "true" ]; then
-                    jq '.mlflow.go = "${{ steps.check-go.outputs.latest-version }}"' .mlflow-versions.json > tmp.json && mv tmp.json .mlflow-versions.json
+                    jq '.mlflow.go = "${{ steps.check-go.outputs.latest-version }}"' temp_versions.json > tmp.json && mv tmp.json temp_versions.json
                     echo "Updated MLflow Go version to ${{ steps.check-go.outputs.latest-version }}"
                   fi
 
-                  # Update last_updated timestamp
-                  jq '.last_updated = now | strftime("%Y-%m-%dT%H:%M:%SZ")' .mlflow-versions.json > tmp.json && mv tmp.json .mlflow-versions.json
+                  # Update last_updated timestamp using date command
+                  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                  jq --arg timestamp "$TIMESTAMP" '.last_updated = $timestamp' temp_versions.json > tmp.json && mv tmp.json temp_versions.json
+
+                  # Replace the original file
+                  mv temp_versions.json .mlflow-versions.json
+
+                  echo "Updated timestamp to: $TIMESTAMP"
 
             - name: Create Pull Request
               if: steps.check-python.outputs.needs-update == 'true' || steps.check-go.outputs.needs-update == 'true'
