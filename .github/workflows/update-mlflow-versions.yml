@@ -24,8 +24,8 @@ jobs:
                   # Get the latest MLflow version from PyPI
                   LATEST_VERSION=$(curl -s https://pypi.org/pypi/mlflow/json | jq -r '.info.version')
 
-                  # Get current version from the workflow file
-                  CURRENT_VERSION=$(grep -o 'MLFLOW_VERSION: [0-9.]*' .github/workflows/docker-build.yml | cut -d' ' -f2)
+                  # Get current version from the config file
+                  CURRENT_VERSION=$(jq -r '.mlflow.python' .mlflow-versions.json)
 
                   echo "Latest MLflow Python version: $LATEST_VERSION"
                   echo "Current Python version: $CURRENT_VERSION"
@@ -52,8 +52,8 @@ jobs:
                     LATEST_VERSION=$(curl -s "https://proxy.golang.org/github.com/mlflow/mlflow-go/@latest" | jq -r '.Version' | sed 's/^v//')
                   fi
 
-                  # Get current version from the workflow file
-                  CURRENT_VERSION=$(grep -o 'MLFLOW_GO_VERSION: [0-9.]*' .github/workflows/docker-build.yml | cut -d' ' -f2)
+                  # Get current version from the config file
+                  CURRENT_VERSION=$(jq -r '.mlflow.go' .mlflow-versions.json)
 
                   echo "Latest MLflow Go version: $LATEST_VERSION"
                   echo "Current Go version: $CURRENT_VERSION"
@@ -73,15 +73,18 @@ jobs:
               run: |
                   # Update Python version if needed
                   if [ "${{ steps.check-python.outputs.needs-update }}" = "true" ]; then
-                    sed -i "s/MLFLOW_VERSION: ${{ steps.check-python.outputs.current-version }}/MLFLOW_VERSION: ${{ steps.check-python.outputs.latest-version }}/g" .github/workflows/docker-build.yml
+                    jq '.mlflow.python = "${{ steps.check-python.outputs.latest-version }}"' .mlflow-versions.json > tmp.json && mv tmp.json .mlflow-versions.json
                     echo "Updated MLflow Python version to ${{ steps.check-python.outputs.latest-version }}"
                   fi
 
                   # Update Go version if needed
                   if [ "${{ steps.check-go.outputs.needs-update }}" = "true" ]; then
-                    sed -i "s/MLFLOW_GO_VERSION: ${{ steps.check-go.outputs.current-version }}/MLFLOW_GO_VERSION: ${{ steps.check-go.outputs.latest-version }}/g" .github/workflows/docker-build.yml
+                    jq '.mlflow.go = "${{ steps.check-go.outputs.latest-version }}"' .mlflow-versions.json > tmp.json && mv tmp.json .mlflow-versions.json
                     echo "Updated MLflow Go version to ${{ steps.check-go.outputs.latest-version }}"
                   fi
+
+                  # Update last_updated timestamp
+                  jq '.last_updated = now | strftime("%Y-%m-%dT%H:%M:%SZ")' .mlflow-versions.json > tmp.json && mv tmp.json .mlflow-versions.json
 
             - name: Create Pull Request
               if: steps.check-python.outputs.needs-update == 'true' || steps.check-go.outputs.needs-update == 'true'
@@ -99,6 +102,7 @@ jobs:
                       This PR updates MLflow versions to their latest releases.
 
                       ## Changes
+                      - Updated `.mlflow-versions.json` with new version(s)
                       ${{ steps.check-python.outputs.needs-update == 'true' && format('- **Python MLflow**: {0} → {1}', steps.check-python.outputs.current-version, steps.check-python.outputs.latest-version) || '' }}
                       ${{ steps.check-go.outputs.needs-update == 'true' && format('- **Go MLflow**: {0} → {1}', steps.check-go.outputs.current-version, steps.check-go.outputs.latest-version) || '' }}
 

@@ -14,11 +14,21 @@ jobs:
         env:
             REGISTRY: ghcr.io
             IMAGE_NAME: ${{ github.repository }}
-            MLFLOW_VERSION: 2.22.0
+            MLFLOW_VERSION: ""
             CACHE_PATH: /tmp/.buildx-cache-mlflow
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
+
+            - name: Read MLflow versions from config
+              id: versions
+              run: |
+                  MLFLOW_VERSION=$(jq -r '.mlflow.python' .mlflow-versions.json)
+                  MLFLOW_GO_VERSION=$(jq -r '.mlflow.go' .mlflow-versions.json)
+                  echo "mlflow-version=$MLFLOW_VERSION" >> $GITHUB_OUTPUT
+                  echo "mlflow-go-version=$MLFLOW_GO_VERSION" >> $GITHUB_OUTPUT
+                  echo "Using MLflow Python version: $MLFLOW_VERSION"
+                  echo "Using MLflow Go version: $MLFLOW_GO_VERSION"
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
@@ -39,7 +49,7 @@ jobs:
               with:
                   images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
                   tags: |
-                      type=raw,value=mlflow-${{ env.MLFLOW_VERSION }}
+                      type=raw,value=mlflow-${{ steps.versions.outputs.mlflow-version }}
                       type=raw,value=latest
 
             - name: Build and push Docker image
@@ -50,7 +60,7 @@ jobs:
                   file: ./Dockerfile
                   build-args: |
                       MLFLOW_BACKEND=python
-                      MLFLOW_VERSION=${{ env.MLFLOW_VERSION }}
+                      MLFLOW_VERSION=${{ steps.versions.outputs.mlflow-version }}
                   push: ${{ github.event_name != 'pull_request' }}
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
@@ -76,11 +86,21 @@ jobs:
         env:
             REGISTRY: ghcr.io
             IMAGE_NAME: ${{ github.repository }}
-            MLFLOW_GO_VERSION: 0.2.0
+            MLFLOW_GO_VERSION: ""
             CACHE_PATH: /tmp/.buildx-cache-mlflow-go
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
+
+            - name: Read MLflow versions from config
+              id: versions
+              run: |
+                  MLFLOW_VERSION=$(jq -r '.mlflow.python' .mlflow-versions.json)
+                  MLFLOW_GO_VERSION=$(jq -r '.mlflow.go' .mlflow-versions.json)
+                  echo "mlflow-version=$MLFLOW_VERSION" >> $GITHUB_OUTPUT
+                  echo "mlflow-go-version=$MLFLOW_GO_VERSION" >> $GITHUB_OUTPUT
+                  echo "Using MLflow Python version: $MLFLOW_VERSION"
+                  echo "Using MLflow Go version: $MLFLOW_GO_VERSION"
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
@@ -101,7 +121,7 @@ jobs:
               with:
                   images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
                   tags: |
-                      type=raw,value=mlflow-go-${{ env.MLFLOW_GO_VERSION }}
+                      type=raw,value=mlflow-go-${{ steps.versions.outputs.mlflow-go-version }}
                       type=raw,value=go-latest
             - name: Build and push Docker image
               id: build-and-push
@@ -111,7 +131,7 @@ jobs:
                   file: ./Dockerfile
                   build-args: |
                       MLFLOW_BACKEND=go
-                      MLFLOW_GO_VERSION=${{ env.MLFLOW_GO_VERSION }}
+                      MLFLOW_GO_VERSION=${{ steps.versions.outputs.mlflow-go-version }}
                   push: ${{ github.event_name != 'pull_request' }}
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
