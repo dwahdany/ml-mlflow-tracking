@@ -95,44 +95,27 @@ jobs:
 
                   echo "Updated timestamp to: $TIMESTAMP"
 
-            - name: Create Pull Request
+            - name: Commit and Push Changes
               if: steps.check-python.outputs.needs-update == 'true' || steps.check-go.outputs.needs-update == 'true'
-              id: create-pr
-              uses: peter-evans/create-pull-request@v5
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  commit-message: |
-                      Update MLflow versions
-
-                      ${{ steps.check-python.outputs.needs-update == 'true' && format('- Python: {0} → {1}', steps.check-python.outputs.current-version, steps.check-python.outputs.latest-version) || '' }}
-                      ${{ steps.check-go.outputs.needs-update == 'true' && format('- Go: {0} → {1}', steps.check-go.outputs.current-version, steps.check-go.outputs.latest-version) || '' }}
-                  title: "Update MLflow versions"
-                  body: |
-                      This PR updates MLflow versions to their latest releases.
-
-                      ## Changes
-                      - Updated `.mlflow-versions.json` with new version(s)
-                      ${{ steps.check-python.outputs.needs-update == 'true' && format('- **Python MLflow**: {0} → {1}', steps.check-python.outputs.current-version, steps.check-python.outputs.latest-version) || '' }}
-                      ${{ steps.check-go.outputs.needs-update == 'true' && format('- **Go MLflow**: {0} → {1}', steps.check-go.outputs.current-version, steps.check-go.outputs.latest-version) || '' }}
-
-                      ## Release Notes
-                      ${{ steps.check-python.outputs.needs-update == 'true' && format('- [MLflow Python {0}](https://github.com/mlflow/mlflow/releases/tag/v{0})', steps.check-python.outputs.latest-version) || '' }}
-                      ${{ steps.check-go.outputs.needs-update == 'true' && format('- [MLflow Go {0}](https://github.com/mlflow/mlflow-go/releases/tag/v{0})', steps.check-go.outputs.latest-version) || '' }}
-
-                      This PR was automatically created by the update workflow.
-                  branch: update-mlflow-versions-${{ github.run_number }}
-                  delete-branch: true
-
-            - name: Auto-merge Pull Request
-              if: (steps.check-python.outputs.needs-update == 'true' || steps.check-go.outputs.needs-update == 'true') && steps.create-pr.outputs.pull-request-number
               run: |
-                  # Wait a moment for the PR to be fully created
-                  sleep 5
+                  # Configure git
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
 
-                  # Auto-merge the PR
-                  gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} --auto --squash
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  # Add and commit changes
+                  git add .mlflow-versions.json
+
+                  # Create commit message
+                  COMMIT_MSG="Update MLflow versions"
+                  if [ "${{ steps.check-python.outputs.needs-update }}" = "true" ]; then
+                    COMMIT_MSG="$COMMIT_MSG - Python: ${{ steps.check-python.outputs.current-version }} → ${{ steps.check-python.outputs.latest-version }}"
+                  fi
+                  if [ "${{ steps.check-go.outputs.needs-update }}" = "true" ]; then
+                    COMMIT_MSG="$COMMIT_MSG - Go: ${{ steps.check-go.outputs.current-version }} → ${{ steps.check-go.outputs.latest-version }}"
+                  fi
+
+                  git commit -m "$COMMIT_MSG"
+                  git push origin main
 
             - name: Summary
               if: always()
@@ -143,9 +126,9 @@ jobs:
                   echo "| Python | ${{ steps.check-python.outputs.current-version || 'N/A' }} | ${{ steps.check-python.outputs.latest-version || 'N/A' }} | ${{ steps.check-python.outputs.needs-update || 'false' }} |" >> $GITHUB_STEP_SUMMARY
                   echo "| Go | ${{ steps.check-go.outputs.current-version || 'N/A' }} | ${{ steps.check-go.outputs.latest-version || 'N/A' }} | ${{ steps.check-go.outputs.needs-update || 'false' }} |" >> $GITHUB_STEP_SUMMARY
 
-                  if [ "${{ steps.create-pr.outputs.pull-request-number }}" != "" ]; then
+                  if [ "${{ steps.check-python.outputs.needs-update }}" = "true" ] || [ "${{ steps.check-go.outputs.needs-update }}" = "true" ]; then
                     echo "" >> $GITHUB_STEP_SUMMARY
-                    echo "✅ **Pull Request Created**: #${{ steps.create-pr.outputs.pull-request-number }}" >> $GITHUB_STEP_SUMMARY
+                    echo "✅ **Changes committed to main branch**" >> $GITHUB_STEP_SUMMARY
                   else
                     echo "" >> $GITHUB_STEP_SUMMARY
                     echo "ℹ️ **No updates needed** - All versions are current" >> $GITHUB_STEP_SUMMARY
