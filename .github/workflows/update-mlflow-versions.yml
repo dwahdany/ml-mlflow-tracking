@@ -43,29 +43,23 @@ jobs:
             - name: Check for new MLflow Go version
               id: check-go
               run: |
-                  # Get the latest MLflow Go version from GitHub releases
-                  LATEST_VERSION=$(curl -s https://api.github.com/repos/mlflow/mlflow-go/releases/latest | jq -r '.tag_name' | sed 's/^v//')
-
-                  # If that fails, try checking Go module versions
-                  if [ "$LATEST_VERSION" = "null" ] || [ -z "$LATEST_VERSION" ]; then
-                    echo "Trying Go module proxy..."
-                    LATEST_VERSION=$(curl -s "https://proxy.golang.org/github.com/mlflow/mlflow-go/@latest" | jq -r '.Version' | sed 's/^v//')
-                  fi
+                  # Get the latest mlflow-go-backend version from PyPI
+                  LATEST_VERSION=$(curl -s https://pypi.org/pypi/mlflow-go-backend/json | jq -r '.info.version')
 
                   # Get current version from the config file
                   CURRENT_VERSION=$(jq -r '.mlflow.go' .mlflow-versions.json)
 
-                  echo "Latest MLflow Go version: $LATEST_VERSION"
+                  echo "Latest MLflow Go backend version (PyPI): $LATEST_VERSION"
                   echo "Current Go version: $CURRENT_VERSION"
 
                   if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ] && [ "$LATEST_VERSION" != "null" ] && [ -n "$LATEST_VERSION" ]; then
                     echo "needs-update=true" >> $GITHUB_OUTPUT
                     echo "latest-version=$LATEST_VERSION" >> $GITHUB_OUTPUT
                     echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-                    echo "New MLflow Go version detected: $LATEST_VERSION"
+                    echo "New MLflow Go backend version detected: $LATEST_VERSION"
                   else
                     echo "needs-update=false" >> $GITHUB_OUTPUT
-                    echo "No new MLflow Go version found or version is the same"
+                    echo "No new MLflow Go backend version found or version is the same"
                   fi
 
             - name: Update MLflow versions
