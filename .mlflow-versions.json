@@ -1,7 +1,7 @@
 {
   "mlflow": {
-    "python": "3.15.2",
+    "python": "3.16.0",
     "go": "0.2.2"
   },
-  "last_updated": "2026-08-27T10:49:09Z"
+  "last_updated": "2026-09-04T05:18:56Z"
 }
